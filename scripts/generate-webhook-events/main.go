@@ -2,9 +2,9 @@ package main
 
 // This is a script to generate a Go source that contains all activity types of all webhook events.
 // Run the following command from the root of this repository to apply manually.
-// This script is usually run via `go generate`.
+// This script is its own module, and is usually run via `go generate`.
 // ```
-// go run ./scripts/generate-webhook-events input.html all_webhooks.go
+// go run -C scripts/generate-webhook-events . ./input.html ../../all_webhooks.go
 // ```
 
 import (

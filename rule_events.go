@@ -8,7 +8,7 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-//go:generate go run ./scripts/generate-webhook-events ./all_webhooks.go
+//go:generate go run -C scripts/generate-webhook-events . ../../all_webhooks.go
 
 // RuleEvents is a rule to check 'on' field in workflow.
 // https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
