@@ -472,7 +472,8 @@ func TestDetectErrorBadRequest(t *testing.T) {
 	f := filepath.Join("testdata", "registry", "bad_request.json")
 	status := newGen(stdout, stderr, io.Discard).run([]string{"test", "-d", "-r", f})
 	if status != 1 {
-		t.Fatal("exit status is not 1:", status, stderr.String())
+		t.Log(stderr.String())
+		t.Fatal("exit status is not 1:", status)
 	}
 	out := stderr.String()
 	if !strings.Contains(out, "head request for https://raw.githubusercontent.com/%00/v2/action.yml was not successful") {
