@@ -15,22 +15,22 @@ It does:
 generate-webhook-events [[srcfile] dstfile]
 ```
 
-Generate `all_webhooks.go` file:
+Generate `all_webhooks.go` from the repository root. Paths are relative to this directory because the script is its own module:
 
 ```sh
-go run ./scripts/generate-webhook-events ./all_webhooks.go
+go run -C scripts/generate-webhook-events . ../../all_webhooks.go
 ```
 
-When the HTML file is in local:
+When the HTML file is local:
 
 ```sh
-go run ./scripts/generate-webhook-events ./input.html ./all_webhooks.go
+go run -C scripts/generate-webhook-events . ./input.html ../../all_webhooks.go
 ```
 
 For debugging, specifying `-` to `dstfile` outputs the generated source to stdout:
 
 ```sh
-go run ./scripts/generate-webhook-events ./input.html -
+go run -C scripts/generate-webhook-events . ./input.html -
 ```
 
 ## Notes

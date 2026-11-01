@@ -1,5 +1,7 @@
 name: CI
 on: [push, pull_request]
+permissions:
+  contents: read
 
 jobs:
   unit-tests:
@@ -29,13 +31,35 @@ jobs:
           pyflakes --version
         if: ${{ runner.os == 'Linux' }}
       - name: Install dependencies on Windows
+        shell: pwsh
         run: |
-          winget install --id koalaman.shellcheck --disable-interactivity --accept-package-agreements --accept-source-agreements
-          pip install pyflakes
+          $ErrorActionPreference = 'Stop'
+          if (Get-Command winget -ErrorAction SilentlyContinue) {
+            winget install --id koalaman.shellcheck --disable-interactivity --accept-package-agreements --accept-source-agreements
+            # winget writes the new directory into the registry PATH, not this process.
+            $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+          } else {
+            # windows-11-arm images do not ship winget. The official Windows zip is x64 and runs there under emulation.
+            $version = '0.11.0'
+            $zip = Join-Path $env:RUNNER_TEMP "shellcheck-v$version.zip"
+            Invoke-WebRequest -Uri "https://github.com/koalaman/shellcheck/releases/download/v$version/shellcheck-v$version.zip" -OutFile $zip
+            $extract = Join-Path $env:RUNNER_TEMP 'shellcheck'
+            Expand-Archive -Path $zip -DestinationPath $extract -Force
+            $bin = Join-Path $extract 'bin'
+            New-Item -ItemType Directory -Force -Path $bin | Out-Null
+            Copy-Item (Join-Path $extract 'shellcheck.exe') (Join-Path $bin 'shellcheck.exe')
+            $env:Path = "$bin;$env:Path"
+          }
+          $shellcheck = (Get-Command shellcheck).Source
+          Add-Content -Path $env:GITHUB_PATH -Value (Split-Path $shellcheck)
+          python -m pip install pyflakes
           pyflakes --version
+          & $shellcheck --version
         if: ${{ runner.os == 'Windows' }}
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version: ${{ matrix.go }}
           check-latest: true
@@ -44,6 +68,11 @@ jobs:
         if: ${{ matrix.os != 'windows-11-arm' }}
       - run: go test -v -coverprofile coverage.txt -covermode=atomic ./...
         if: ${{ matrix.os == 'windows-11-arm' }}
+      - name: Test webhook event generator
+        # Its module requires Go 1.26 because that is what the patched html parser needs.
+        if: ${{ matrix.go == '1.26' }}
+        working-directory: scripts/generate-webhook-events
+        run: go test ./...
       - run: go tool cover -func ./coverage.txt
       # Check build without CGO
       - run: go build ./cmd/actionlint
@@ -57,7 +86,7 @@ jobs:
         run: |
           echo "::add-matcher::.github/actionlint-matcher.json"
           ./actionlint -color
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           env_vars: OS
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -70,12 +99,14 @@ jobs:
       run:
         working-directory: ./playground
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version: '1.26'
           check-latest: true
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: "lts/*"
           cache: npm
@@ -90,8 +121,10 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version: '1.26'
           check-latest: true
@@ -120,18 +153,22 @@ jobs:
     name: Dockerfile
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
       - name: Build image
         id: image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           build-args: |
             GOLANG_VER=1.26
           push: false
       - name: Test Docker image
+        env:
+          IMAGE: ${{ steps.image.outputs.digest }}
         run: docker container run
           --mount type=bind,source="$(pwd)",target=/mnt/app
           --workdir /mnt/app
-          -- ${{ steps.image.outputs.digest }} -color -verbose
+          -- "$IMAGE" -color -verbose
       - name: Lint Dockerfile with hadolint
         run: docker run --rm -i hadolint/hadolint hadolint --ignore DL3018 --strict-labels - < Dockerfile

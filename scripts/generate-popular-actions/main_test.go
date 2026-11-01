@@ -466,13 +466,17 @@ func TestInvalidCommandArgs(t *testing.T) {
 func TestDetectErrorBadRequest(t *testing.T) {
 	stdout := io.Discard
 	stderr := &bytes.Buffer{}
-	f := filepath.Join("testdata", "registry", "empty_slug.json")
+	// An empty slug used to be rejected by raw.githubusercontent.com. That host now
+	// redirects "//v2/..." to "/v2/..." and 404s, which the detector treats as not found.
+	// A NUL in the path is still a 400, so it still exercises the unsuccessful-response path.
+	f := filepath.Join("testdata", "registry", "bad_request.json")
 	status := newGen(stdout, stderr, io.Discard).run([]string{"test", "-d", "-r", f})
 	if status != 1 {
+		t.Log(stderr.String())
 		t.Fatal("exit status is not 1:", status)
 	}
 	out := stderr.String()
-	if !strings.Contains(out, "head request for https://raw.githubusercontent.com//v2/action.yml was not successful") {
+	if !strings.Contains(out, "head request for https://raw.githubusercontent.com/%00/v2/action.yml was not successful") {
 		t.Fatalf("stderr was unexpected: %q", out)
 	}
 }

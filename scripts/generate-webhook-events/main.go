@@ -2,9 +2,9 @@ package main
 
 // This is a script to generate a Go source that contains all activity types of all webhook events.
 // Run the following command from the root of this repository to apply manually.
-// This script is usually run via `go generate`.
+// This script is its own module, and is usually run via `go generate`.
 // ```
-// go run ./scripts/generate-webhook-events input.html all_webhooks.go
+// go run -C scripts/generate-webhook-events . ./input.html ../../all_webhooks.go
 // ```
 
 import (
@@ -347,7 +347,7 @@ func run(args []string, stdout, dbgout io.Writer, srcURL string) error {
 	var src []byte
 	var err error
 	if len(args) == 2 {
-		src, err = os.ReadFile(args[0])
+		src, err = os.ReadFile(args[0]) // #nosec G304 G703 -- path is an operator argument to this generator
 	} else {
 		src, err = fetch(srcURL)
 	}
@@ -362,7 +362,7 @@ func run(args []string, stdout, dbgout io.Writer, srcURL string) error {
 		dst = "stdout"
 	} else {
 		dst = args[len(args)-1]
-		f, err := os.Create(dst)
+		f, err := os.Create(dst) // #nosec G304 G703 -- path is an operator argument to this generator
 		if err != nil {
 			return err
 		}
