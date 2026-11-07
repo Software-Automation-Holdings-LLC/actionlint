@@ -78,7 +78,12 @@
 
     const u = params.get("u");
     if (u !== null) {
-      return getRemoteSource(u);
+      try {
+        return await getRemoteSource(u);
+      } catch (err) {
+        console.error(err);
+        alert(`Could not load the workflow from ${u}: ${err instanceof Error ? err.message : err}`);
+      }
     }
 
     if (window.location.hash !== "") {
