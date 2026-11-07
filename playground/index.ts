@@ -34,7 +34,12 @@
 
       // The request host is always one of the literals below; user input only supplies the path.
       // Path without leading '/'.
-      const path = url.pathname.slice(1);
+      // Each segment is validated and re-encoded so user input cannot alter host, scheme or traversal.
+      const segments = url.pathname.slice(1).split("/");
+      if (segments.some((seg) => !/^[A-Za-z0-9._~%-]+$/.test(seg) || seg === "." || seg === "..")) {
+        throw new Error(`Invalid path in URL: ${u}`);
+      }
+      const path = segments.map((seg) => encodeURIComponent(decodeURIComponent(seg))).join("/");
 
       // Convert repository URL to raw source URL
       if (url.host === "github.com") {
