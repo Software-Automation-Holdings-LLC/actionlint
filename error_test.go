@@ -169,10 +169,10 @@ func TestErrorPrettyPrint(t *testing.T) {
 			line:    2,
 			column:  1,
 			source:  "this\n\nsource",
-			expected: `filename.txt:2:1: error at blank line of multi-line source [kind]
-  |
-2 |
-  | ^`,
+			expected: "filename.txt:2:1: error at blank line of multi-line source [kind]\n" +
+				"  |\n" +
+				"2 | \n" +
+				"  | ^",
 		},
 		{
 			message: "error at line more than 10",
