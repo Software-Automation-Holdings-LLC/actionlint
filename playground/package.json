@@ -36,10 +36,12 @@
     "picomatch@^2": "2.3.2",
     "picomatch@^4": "4.0.4",
     "flatted": "3.4.2",
-    "follow-redirects": "1.16.0",
+    "follow-redirects": "1.16.2",
     "@humanfs/node": "0.16.8",
     "ajv@^6": "6.14.0",
-    "ajv@^8": "8.18.0"
+    "ajv@^8": "8.18.0",
+    "minimatch@^9": "11.0.5",
+    "minimatch@^10": "11.0.5"
   },
   "dependencies": {
     "bulma": "^1.0.4",
