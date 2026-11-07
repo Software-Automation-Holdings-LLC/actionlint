@@ -14,6 +14,7 @@ FROM koalaman/shellcheck-alpine:stable AS shellcheck
 FROM alpine:${ALPINE_VER}
 COPY --from=builder /go/src/app/actionlint /usr/local/bin/
 COPY --from=shellcheck /bin/shellcheck /usr/local/bin/shellcheck
+# hadolint ignore=DL3018
 RUN apk add --no-cache py3-pyflakes
-USER guest
+USER 405
 ENTRYPOINT ["/usr/local/bin/actionlint"]

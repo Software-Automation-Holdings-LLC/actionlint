@@ -1,5 +1,4 @@
-Playground for actionlint
-=========================
+# Playground for actionlint
 
 This is a development directory for [actionlint playground](https://rhysd.github.io/actionlint/).
 
@@ -27,8 +26,8 @@ make clean
 
 ## Lint
 
-Sources are linted with [eslint](https://eslint.org/) with [typescript-eslint](https://github.com/typescript-eslint/typescript-eslint),
-[prettier](https://prettier.io/) and [stylelint](https://stylelint.io/).
+Sources are linted with [eslint](https://eslint.org/) with [typescript-eslint](https://github.com/typescript-eslint/typescript-eslint)
+and [stylelint](https://stylelint.io/).
 
 `lint` npm script applies all the liters:
 
