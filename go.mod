@@ -2,8 +2,6 @@ module github.com/rhysd/actionlint
 
 go 1.26.10
 
-toolchain go1.26.10
-
 require (
 	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/fatih/color v1.19.0
